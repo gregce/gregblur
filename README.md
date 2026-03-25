@@ -1,5 +1,10 @@
 # gregblur
 
+[![npm version](https://img.shields.io/npm/v/gregblur)](https://www.npmjs.com/package/gregblur)
+[![license](https://img.shields.io/npm/l/gregblur)](https://github.com/nicholasgasior/gregblur/blob/main/LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/gregblur)](https://bundlephobia.com/package/gregblur)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+
 High-quality WebGL2 background blur for video streams.
 
 Implements the full Google Meet technique stack — confidence masks, joint bilateral filtering, mask-weighted Gaussian blur, temporal EMA smoothing, masked downsampling, and foreground-biased compositing — as a standalone, framework-agnostic library.
@@ -8,16 +13,16 @@ Implements the full Google Meet technique stack — confidence masks, joint bila
 
 Most background blur libraries either give you raw segmentation masks (TensorFlow.js) or lock you into a specific video platform (Twilio, LiveKit, Agora). Gregblur sits in the gap: a complete, production-quality blur pipeline that works with any video source.
 
-| Technique | gregblur | LiveKit OSS | Volcomix | Twilio |
-|---|---|---|---|---|
-| Confidence masks | Yes | Yes | Yes | Yes |
-| Joint bilateral filter | Yes | No | Yes | Yes |
-| Temporal smoothing | Yes | No | No | Yes |
-| Mask-weighted blur | Yes | No | No | Yes |
-| Masked downsample | Yes | No | No | No |
-| Foreground-biased matte | Yes | No | No | No |
-| Open source | Yes | Yes | Yes | No |
-| Framework-agnostic | Yes | No | Yes | No |
+| Technique               | gregblur | LiveKit OSS | Volcomix | Twilio |
+| ----------------------- | -------- | ----------- | -------- | ------ |
+| Confidence masks        | Yes      | Yes         | Yes      | Yes    |
+| Joint bilateral filter  | Yes      | No          | Yes      | Yes    |
+| Temporal smoothing      | Yes      | No          | No       | Yes    |
+| Mask-weighted blur      | Yes      | No          | No       | Yes    |
+| Masked downsample       | Yes      | No          | No       | No     |
+| Foreground-biased matte | Yes      | No          | No       | No     |
+| Open source             | Yes      | Yes         | Yes      | No     |
+| Framework-agnostic      | Yes      | No          | Yes      | No     |
 
 ## Install
 
@@ -70,18 +75,19 @@ const canvas = pipeline.getCanvas()
 
 ### Entry Points
 
-| Import | What you get |
-|---|---|
-| `gregblur` | Core pipeline + MediaPipe provider |
-| `gregblur/livekit` | LiveKit TrackProcessor adapter |
-| `gregblur/raw` | Raw MediaStreamTrack processor |
-| `gregblur/detect` | Browser capability detection |
+| Import             | What you get                       |
+| ------------------ | ---------------------------------- |
+| `gregblur`         | Core pipeline + MediaPipe provider |
+| `gregblur/livekit` | LiveKit TrackProcessor adapter     |
+| `gregblur/raw`     | Raw MediaStreamTrack processor     |
+| `gregblur/detect`  | Browser capability detection       |
 
 ### `createGregblurPipeline(provider, options?)`
 
 Creates the core WebGL2 blur pipeline. You manage frame timing yourself.
 
 **Options:**
+
 - `blurRadius` — Gaussian blur radius (default: 25)
 - `bilateralSigmaSpace` — Spatial sigma for bilateral filter (default: 4.0)
 - `bilateralSigmaColor` — Color sigma for bilateral filter (default: 0.1)
@@ -94,6 +100,7 @@ Creates the core WebGL2 blur pipeline. You manage frame timing yourself.
 Default segmentation provider using MediaPipe's selfie segmentation models.
 
 **Options:**
+
 - `model` — `'selfie-multiclass-256'` or `'selfie-segmenter'` (default: `'selfie-multiclass-256'`)
 - `mediapipeVersion` — CDN version (default: `'0.10.14'`)
 - `visionBundleUrl` — custom URL for `vision_bundle.mjs` if you self-host MediaPipe

@@ -20,8 +20,10 @@ import {
 } from './_pipelines.js'
 
 /** LiveKit-specific processor interface with blur toggle. */
-export interface LiveKitBlurProcessor
-  extends TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>> {
+export interface LiveKitBlurProcessor extends TrackProcessor<
+  Track.Kind,
+  ProcessorOptions<Track.Kind>
+> {
   setEnabled(enabled: boolean): void
   isEnabled(): boolean
 }
@@ -47,8 +49,7 @@ export function createLiveKitBlurProcessor(
   options?: CreateLiveKitBlurOptions,
 ): LiveKitBlurProcessor {
   const segProvider =
-    options?.segmentationProvider ??
-    createMediaPipeProvider({ model: options?.segmentationModel })
+    options?.segmentationProvider ?? createMediaPipeProvider({ model: options?.segmentationModel })
 
   const pipeline = createGregblurPipeline(segProvider, options)
 

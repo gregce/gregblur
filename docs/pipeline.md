@@ -413,15 +413,15 @@ graph LR
 
 ## Why Each Stage Matters
 
-| Stage | Without It | With It |
-|---|---|---|
-| **Bilateral filter** | Fuzzy edges — hair and glasses blend into background | Sharp edges aligned to real image boundaries |
-| **Temporal blend** | Visible flickering on every frame, especially profile turns | Smooth, stable mask transitions |
-| **Masked downsample** | Subject pixels baked into blur texels → ghosting | Clean background without foreground contamination |
-| **Mask-weighted blur** | Bright "halo" around the subject from foreground bleed | Foreground suppressed — no halo artifacts |
-| **Foreground bias** | Ears, temples, thin hair lost on profile turns | +0.035 offset preserves conservative model predictions |
-| **Smoothstep composite** | Hard, jaggy transition between person and blur | Clean soft edge with tunable falloff |
+| Stage                    | Without It                                                  | With It                                                |
+| ------------------------ | ----------------------------------------------------------- | ------------------------------------------------------ |
+| **Bilateral filter**     | Fuzzy edges — hair and glasses blend into background        | Sharp edges aligned to real image boundaries           |
+| **Temporal blend**       | Visible flickering on every frame, especially profile turns | Smooth, stable mask transitions                        |
+| **Masked downsample**    | Subject pixels baked into blur texels → ghosting            | Clean background without foreground contamination      |
+| **Mask-weighted blur**   | Bright "halo" around the subject from foreground bleed      | Foreground suppressed — no halo artifacts              |
+| **Foreground bias**      | Ears, temples, thin hair lost on profile turns              | +0.035 offset preserves conservative model predictions |
+| **Smoothstep composite** | Hard, jaggy transition between person and blur              | Clean soft edge with tunable falloff                   |
 
 ---
 
-*Diagrams rendered with [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) using the tokyo-night theme. Regenerate with `npm run docs`.*
+_Diagrams rendered with [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) using the tokyo-night theme. Regenerate with `npm run docs`._

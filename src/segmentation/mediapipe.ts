@@ -91,15 +91,12 @@ async function loadVisionModule(visionBundleUrl: string): Promise<MediaPipeVisio
  * The provider dynamically imports @mediapipe/tasks-vision at init time,
  * so no npm dependency on mediapipe is required — it loads from CDN.
  */
-export function createMediaPipeProvider(
-  options?: MediaPipeProviderOptions,
-): SegmentationProvider {
+export function createMediaPipeProvider(options?: MediaPipeProviderOptions): SegmentationProvider {
   const model = options?.model ?? 'selfie-multiclass-256'
   const modelUrl = options?.modelUrl ?? SEGMENTATION_MODEL_URLS[model]
   const version = options?.mediapipeVersion ?? MEDIAPIPE_VERSION
   const visionBundleUrl = options?.visionBundleUrl ?? getVisionBundleUrl(version)
-  const wasmBasePath =
-    options?.wasmBasePath ?? getWasmBasePath(version)
+  const wasmBasePath = options?.wasmBasePath ?? getWasmBasePath(version)
 
   let segmenter: MediaPipeImageSegmenter | null = null
   let lastTimestampMs = -1
@@ -109,11 +106,8 @@ export function createMediaPipeProvider(
    * VIDEO mode rejects non-increasing values.
    */
   function getMonotonicTimestamp(rawTimestamp: number): number {
-    const normalised = Number.isFinite(rawTimestamp)
-      ? Math.max(0, Math.floor(rawTimestamp))
-      : 0
-    const next =
-      normalised <= lastTimestampMs ? lastTimestampMs + 1 : normalised
+    const normalised = Number.isFinite(rawTimestamp) ? Math.max(0, Math.floor(rawTimestamp)) : 0
+    const next = normalised <= lastTimestampMs ? lastTimestampMs + 1 : normalised
     lastTimestampMs = next
     return next
   }
@@ -132,9 +126,7 @@ export function createMediaPipeProvider(
       }
 
       const vision = await loadVisionModule(visionBundleUrl)
-      const wasmFileset = await vision.FilesetResolver.forVisionTasks(
-        wasmBasePath,
-      )
+      const wasmFileset = await vision.FilesetResolver.forVisionTasks(wasmBasePath)
 
       segmenter = await vision.ImageSegmenter.createFromOptions(wasmFileset, {
         baseOptions: {
@@ -150,16 +142,10 @@ export function createMediaPipeProvider(
       lastTimestampMs = -1
     },
 
-    segment(
-      source: TexImageSource,
-      timestampMs: number,
-    ): SegmentationResult | null {
+    segment(source: TexImageSource, timestampMs: number): SegmentationResult | null {
       if (!segmenter) return null
 
-      const result = segmenter.segmentForVideo(
-        source,
-        getMonotonicTimestamp(timestampMs),
-      )
+      const result = segmenter.segmentForVideo(source, getMonotonicTimestamp(timestampMs))
 
       // confidenceMasks[0] = background confidence (1.0 = definitely background)
       if (!result?.confidenceMasks?.[0]) {
@@ -167,8 +153,7 @@ export function createMediaPipeProvider(
         return null
       }
 
-      const confidenceTexture: WebGLTexture =
-        result.confidenceMasks[0].getAsWebGLTexture()
+      const confidenceTexture: WebGLTexture = result.confidenceMasks[0].getAsWebGLTexture()
 
       return {
         confidenceTexture,

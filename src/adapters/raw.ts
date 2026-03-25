@@ -47,12 +47,9 @@ export interface CreateRawBlurOptions extends GregblurOptions {
  * @param options - Optional configuration
  * @returns A processor with start/destroy lifecycle
  */
-export function createRawBlurProcessor(
-  options?: CreateRawBlurOptions,
-): RawBlurProcessor {
+export function createRawBlurProcessor(options?: CreateRawBlurOptions): RawBlurProcessor {
   const segProvider =
-    options?.segmentationProvider ??
-    createMediaPipeProvider({ model: options?.segmentationModel })
+    options?.segmentationProvider ?? createMediaPipeProvider({ model: options?.segmentationModel })
 
   const pipeline = createGregblurPipeline(segProvider, options)
 

@@ -124,11 +124,14 @@ export function startInsertableStreamsPipeline(
     },
   })
 
-  mstp.readable.pipeThrough(transformer).pipeTo(generator.writable).catch((e: unknown) => {
-    if (!isAbortError(e)) {
-      console.warn('[gregblur] Pipeline error:', e)
-    }
-  })
+  mstp.readable
+    .pipeThrough(transformer)
+    .pipeTo(generator.writable)
+    .catch((e: unknown) => {
+      if (!isAbortError(e)) {
+        console.warn('[gregblur] Pipeline error:', e)
+      }
+    })
 
   return generator as MediaStreamTrack
 }

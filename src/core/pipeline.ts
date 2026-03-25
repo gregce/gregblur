@@ -38,11 +38,7 @@ function sanitisePositiveNumber(
   return Number.isFinite(value) ? Math.max(minimum, value as number) : fallback
 }
 
-function sanitiseInteger(
-  value: number | undefined,
-  fallback: number,
-  minimum: number,
-): number {
+function sanitiseInteger(value: number | undefined, fallback: number, minimum: number): number {
   const normalised = Number.isFinite(value) ? Math.floor(value as number) : fallback
   return Math.max(minimum, normalised)
 }
@@ -492,8 +488,7 @@ export function createGregblurPipeline(
         typeof g.MediaStreamTrackGenerator === 'function'
 
       const canUseOffscreenCanvas =
-        typeof OffscreenCanvas !== 'undefined' &&
-        (hasIS || typeof document === 'undefined')
+        typeof OffscreenCanvas !== 'undefined' && (hasIS || typeof document === 'undefined')
 
       if (canUseOffscreenCanvas) {
         canvas = new OffscreenCanvas(w, h)
@@ -523,11 +518,7 @@ export function createGregblurPipeline(
         temporalBlendProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, TEMPORAL_BLEND_SHADER)
         copySourceProgram = createProgram(gl, VERTEX_SHADER, COPY_SHADER)
         copyProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, COPY_SHADER)
-        maskedDownsampleProgram = createProgram(
-          gl,
-          VERTEX_SHADER_NO_FLIP,
-          MASKED_DOWNSAMPLE_SHADER,
-        )
+        maskedDownsampleProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, MASKED_DOWNSAMPLE_SHADER)
         maskWeightedBlurProgram = createProgram(
           gl,
           VERTEX_SHADER_NO_FLIP,
