@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gregblur — Live Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1b26;
+      --surface: #24283b;
+      --text: #a9b1d6;
+      --text-muted: #565f89;
+      --accent: #7aa2f7;
+      --green: #9ece6a;
+      --red: #f7768e;
+      --yellow: #e0af68;
+      --purple: #bb9af7;
+      --border: #3b4261;
+      --radius: 8px;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+
+    .header {
+      text-align: center;
+      padding: 2rem 1rem 1.5rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #c0caf5;
+      letter-spacing: -0.02em;
+    }
+
+    .header h1 span {
+      color: var(--accent);
+    }
+
+    .header .subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .header .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .header .github-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .github-link svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* ── Container ─────────────────────────────────────────────── */
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem 3rem;
+    }
+
+    /* ── Unsupported / Error banners ──────────────────────────── */
+
+    .banner {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .banner.error {
+      background: rgba(247, 118, 142, 0.1);
+      border: 1px solid rgba(247, 118, 142, 0.3);
+      color: var(--red);
+    }
+
+    .banner.warning {
+      background: rgba(224, 175, 104, 0.1);
+      border: 1px solid rgba(224, 175, 104, 0.3);
+      color: var(--yellow);
+    }
+
+    .banner.visible { display: block; }
+
+    .banner strong { font-weight: 600; }
+
+    /* ── Video panels ─────────────────────────────────────────── */
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 767px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .video-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .video-panel .panel-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-label .badge {
+      font-size: 0.625rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    .badge.original {
+      background: rgba(122, 162, 247, 0.15);
+      color: var(--accent);
+    }
+
+    .badge.processed {
+      background: rgba(158, 206, 106, 0.15);
+      color: var(--green);
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      background: #16161e;
+    }
+
+    .video-wrapper video,
+    .video-wrapper canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-wrapper .placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* ── Controls ──────────────────────────────────────────────── */
+
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: flex-end;
+    }
+
+    .control-group {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .control-group .value-display {
+      float: right;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Select styling */
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus { border-color: var(--accent); }
+
+    /* Toggle button */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .toggle-btn:active { transform: scale(0.97); }
+
+    .toggle-btn.on {
+      background: var(--green);
+      color: #1a1b26;
+    }
+
+    .toggle-btn.off {
+      background: var(--red);
+      color: #1a1b26;
+    }
+
+    .start-btn {
+      background: var(--accent);
+      color: #1a1b26;
+    }
+
+    .start-btn:hover { background: #89b4fa; }
+
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── Stats bar ─────────────────────────────────────────────── */
+
+    .stats-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stat .stat-label {
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat .stat-value {
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .stat .stat-dot.active { background: var(--green); }
+    .stat .stat-dot.error { background: var(--red); }
+    .stat .stat-dot.loading {
+      background: var(--yellow);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── How It Works section ──────────────────────────────────── */
+
+    .how-it-works {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .how-it-works h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #c0caf5;
+      margin-bottom: 1rem;
+    }
+
+    .stages-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .stages-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      font-size: 0.8125rem;
+      padding: 0.4rem 0;
+    }
+
+    .stage-num {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(122, 162, 247, 0.15);
+      color: var(--accent);
+      font-size: 0.6875rem;
+      font-weight: 700;
+    }
+
+    .how-it-works .docs-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .how-it-works .docs-link:hover { text-decoration: underline; }
+
+    /* ── Footer ────────────────────────────────────────────────── */
+
+    .footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header class="header">
+    <h1><span>greg</span>blur</h1>
+    <p class="subtitle">High-quality WebGL2 background blur for video streams</p>
+    <a class="github-link" href="https://github.com/nicholasgasior/gregblur" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      View on GitHub
+    </a>
+  </header>
+
+  <div class="container">
+
+    <!-- ── Banners ──────────────────────────────────────────── -->
+    <div id="errorBanner" class="banner error">
+      <strong>Not Supported:</strong> <span id="errorReason"></span>
+    </div>
+    <div id="warningBanner" class="banner warning">
+      <strong>Camera Error:</strong> <span id="warningReason"></span>
+    </div>
+
+    <!-- ── Video Panels ────────────────────────────────────── -->
+    <div class="video-grid">
+      <div class="video-panel">
+        <div class="panel-label">
+          Original Feed
+          <span class="badge original">Camera</span>
+        </div>
+        <div class="video-wrapper">
+          <video id="sourceVideo" autoplay playsinline muted></video>
+          <div id="originalPlaceholder" class="placeholder">Click "Start Camera" to begin</div>
+        </div>
+      </div>
+      <div class="video-panel">
+        <div class="panel-label">
+          Processed Output
+          <span class="badge processed">gregblur</span>
+        </div>
+        <div class="video-wrapper">
+          <canvas id="outputCanvas"></canvas>
+          <div id="outputPlaceholder" class="placeholder">Waiting for pipeline...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Stats Bar ───────────────────────────────────────── -->
+    <div class="stats-bar">
+      <div class="stat">
+        <div id="statusDot" class="stat-dot"></div>
+        <span class="stat-label">Pipeline</span>
+        <span id="statusText" class="stat-value">Idle</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">FPS</span>
+        <span id="fpsValue" class="stat-value">--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Resolution</span>
+        <span id="resValue" class="stat-value">--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Model</span>
+        <span id="modelValue" class="stat-value">--</span>
+      </div>
+    </div>
+
+    <!-- ── Controls ────────────────────────────────────────── -->
+    <div class="controls">
+      <div class="controls-row">
+        <div class="control-group" style="flex: 0 0 auto; min-width: auto;">
+          <label>&nbsp;</label>
+          <button id="startBtn" class="toggle-btn start-btn">Start Camera</button>
+        </div>
+        <div class="control-group" style="flex: 0 0 auto; min-width: auto;">
+          <label>&nbsp;</label>
+          <button id="toggleBtn" class="toggle-btn on" disabled>Blur: ON</button>
+        </div>
+        <div class="control-group">
+          <label>
+            Blur Radius
+            <span id="blurRadiusValue" class="value-display">25</span>
+          </label>
+          <input type="range" id="blurRadius" min="1" max="50" value="25" step="1" />
+        </div>
+        <div class="control-group">
+          <label>
+            Temporal Blend
+            <span id="temporalBlendValue" class="value-display">0.24</span>
+          </label>
+          <input type="range" id="temporalBlend" min="0" max="1" value="0.24" step="0.01" />
+        </div>
+        <div class="control-group">
+          <label>Model</label>
+          <select id="modelSelect">
+            <option value="selfie-multiclass-256" selected>Selfie Multiclass 256</option>
+            <option value="selfie-segmenter">Selfie Segmenter</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── How It Works ────────────────────────────────────── -->
+    <section class="how-it-works">
+      <h2>How It Works</h2>
+      <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Every frame passes through 8 GPU stages in a single draw cycle — no CPU pixel work.
+      </p>
+      <ol class="stages-list">
+        <li><span class="stage-num">1</span> Upload camera frame to a WebGL2 RGBA texture</li>
+        <li><span class="stage-num">2</span> Run MediaPipe segmentation to get a confidence mask</li>
+        <li><span class="stage-num">3</span> Joint bilateral filter refines mask edges using color</li>
+        <li><span class="stage-num">4</span> Temporal EMA blends with previous frame's mask</li>
+        <li><span class="stage-num">5</span> Masked downsample to half-res (foreground-weighted)</li>
+        <li><span class="stage-num">6</span> Mask-weighted 2-pass separable Gaussian blur</li>
+        <li><span class="stage-num">7</span> Composite via smoothstep matte blending</li>
+        <li><span class="stage-num">8</span> Output to canvas for display or stream capture</li>
+      </ol>
+      <a class="docs-link" href="https://github.com/nicholasgasior/gregblur/blob/main/docs/pipeline.md" target="_blank" rel="noopener">
+        Read the full pipeline documentation &rarr;
+      </a>
+    </section>
+  </div>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="footer">
+    <p>
+      <strong>gregblur</strong> &mdash; MIT License &mdash;
+      <a href="https://github.com/nicholasgasior/gregblur" target="_blank" rel="noopener">GitHub</a>
+    </p>
+  </footer>
+
+  <!-- ── Application Logic ─────────────────────────────────── -->
+  <script type="module">
+    // Import from the built dist/ directory.
+    // On GitHub Pages, the CI build copies dist/ alongside demo/.
+    import { createGregblurPipeline, createMediaPipeProvider } from '../dist/index.js'
+    import { isBlurSupported } from '../dist/detect.js'
+
+    // ── DOM References ──────────────────────────────────────
+    const errorBanner = document.getElementById('errorBanner')
+    const errorReason = document.getElementById('errorReason')
+    const warningBanner = document.getElementById('warningBanner')
+    const warningReason = document.getElementById('warningReason')
+
+    const sourceVideo = document.getElementById('sourceVideo')
+    const outputCanvas = document.getElementById('outputCanvas')
+    const originalPlaceholder = document.getElementById('originalPlaceholder')
+    const outputPlaceholder = document.getElementById('outputPlaceholder')
+
+    const statusDot = document.getElementById('statusDot')
+    const statusText = document.getElementById('statusText')
+    const fpsValue = document.getElementById('fpsValue')
+    const resValue = document.getElementById('resValue')
+    const modelValue = document.getElementById('modelValue')
+
+    const startBtn = document.getElementById('startBtn')
+    const toggleBtn = document.getElementById('toggleBtn')
+    const blurRadiusSlider = document.getElementById('blurRadius')
+    const blurRadiusDisplay = document.getElementById('blurRadiusValue')
+    const temporalBlendSlider = document.getElementById('temporalBlend')
+    const temporalBlendDisplay = document.getElementById('temporalBlendValue')
+    const modelSelect = document.getElementById('modelSelect')
+
+    // ── State ───────────────────────────────────────────────
+    let pipeline = null
+    let animFrameId = null
+    let stream = null
+    let blurEnabled = true
+    let currentBlurRadius = 25
+    let currentTemporalBlend = 0.24
+    let currentModel = 'selfie-multiclass-256'
+
+    // FPS tracking
+    const frameTimes = []
+    let lastFpsUpdate = 0
+
+    // ── Browser Support Check ───────────────────────────────
+    const support = isBlurSupported()
+    if (!support.supported) {
+      errorReason.textContent = support.reason
+      errorBanner.classList.add('visible')
+      startBtn.disabled = true
+    }
+
+    // ── Helpers ─────────────────────────────────────────────
+
+    function setStatus(status, state) {
+      statusText.textContent = status
+      statusDot.className = 'stat-dot'
+      if (state) statusDot.classList.add(state)
+    }
+
+    function showWarning(message) {
+      warningReason.textContent = message
+      warningBanner.classList.add('visible')
+    }
+
+    function hideWarning() {
+      warningBanner.classList.remove('visible')
+    }
+
+    function updateFps(now) {
+      frameTimes.push(now)
+      // Keep last 60 timestamps
+      while (frameTimes.length > 60) frameTimes.shift()
+
+      // Update display every 500ms
+      if (now - lastFpsUpdate < 500) return
+      lastFpsUpdate = now
+
+      if (frameTimes.length < 2) {
+        fpsValue.textContent = '--'
+        return
+      }
+
+      const elapsed = frameTimes[frameTimes.length - 1] - frameTimes[0]
+      const fps = ((frameTimes.length - 1) / elapsed) * 1000
+      fpsValue.textContent = Math.round(fps)
+    }
+
+    // ── Pipeline Management ─────────────────────────────────
+
+    async function createPipeline() {
+      // Destroy existing pipeline if any
+      if (pipeline) {
+        pipeline.destroy()
+        pipeline = null
+      }
+
+      const provider = createMediaPipeProvider({ model: currentModel })
+
+      pipeline = createGregblurPipeline(provider, {
+        blurRadius: currentBlurRadius,
+        temporalBlendFactor: currentTemporalBlend,
+      })
+
+      const width = sourceVideo.videoWidth || 1280
+      const height = sourceVideo.videoHeight || 720
+
+      setStatus('Initializing...', 'loading')
+      modelValue.textContent = currentModel === 'selfie-multiclass-256'
+        ? 'Multiclass 256'
+        : 'Selfie Segmenter'
+
+      await pipeline.init(width, height)
+
+      pipeline.setEnabled(blurEnabled)
+      resValue.textContent = `${width}x${height}`
+      setStatus('Running', 'active')
+    }
+
+    // ── Render Loop ─────────────────────────────────────────
+
+    function renderLoop(now) {
+      animFrameId = requestAnimationFrame(renderLoop)
+
+      if (!pipeline || sourceVideo.readyState < 2) return
+
+      try {
+        pipeline.processFrame(sourceVideo, now)
+
+        // Draw pipeline output onto the visible canvas
+        const pipelineCanvas = pipeline.getCanvas()
+        const ctx = outputCanvas.getContext('2d')
+        if (ctx && pipelineCanvas) {
+          outputCanvas.width = pipelineCanvas.width
+          outputCanvas.height = pipelineCanvas.height
+          ctx.drawImage(pipelineCanvas, 0, 0)
+        }
+
+        updateFps(now)
+      } catch (err) {
+        console.warn('[demo] Frame error:', err)
+      }
+    }
+
+    // ── Camera Start ────────────────────────────────────────
+
+    async function startCamera() {
+      startBtn.disabled = true
+      startBtn.textContent = 'Starting...'
+      hideWarning()
+      setStatus('Requesting camera...', 'loading')
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user',
+          },
+          audio: false,
+        })
+
+        sourceVideo.srcObject = stream
+        originalPlaceholder.style.display = 'none'
+
+        // Wait for video metadata to load so we know dimensions
+        await new Promise((resolve, reject) => {
+          sourceVideo.onloadedmetadata = resolve
+          sourceVideo.onerror = reject
+          // Safety timeout
+          setTimeout(reject, 10000)
+        })
+
+        await sourceVideo.play()
+        outputPlaceholder.textContent = 'Loading model...'
+
+        await createPipeline()
+
+        outputPlaceholder.style.display = 'none'
+        toggleBtn.disabled = false
+        startBtn.textContent = 'Camera Active'
+
+        // Start render loop
+        frameTimes.length = 0
+        lastFpsUpdate = 0
+        animFrameId = requestAnimationFrame(renderLoop)
+      } catch (err) {
+        setStatus('Error', 'error')
+        startBtn.disabled = false
+        startBtn.textContent = 'Start Camera'
+
+        if (err.name === 'NotAllowedError') {
+          showWarning('Camera access was denied. Please allow camera access and try again.')
+        } else if (err.name === 'NotFoundError') {
+          showWarning('No camera found. Please connect a camera and try again.')
+        } else if (err.name === 'NotReadableError') {
+          showWarning('Camera is in use by another application.')
+        } else {
+          showWarning(`Failed to start: ${err.message || err}`)
+        }
+      }
+    }
+
+    // ── Event Handlers ──────────────────────────────────────
+
+    startBtn.addEventListener('click', startCamera)
+
+    toggleBtn.addEventListener('click', () => {
+      blurEnabled = !blurEnabled
+      if (pipeline) pipeline.setEnabled(blurEnabled)
+
+      toggleBtn.textContent = blurEnabled ? 'Blur: ON' : 'Blur: OFF'
+      toggleBtn.className = blurEnabled ? 'toggle-btn on' : 'toggle-btn off'
+    })
+
+    blurRadiusSlider.addEventListener('input', (e) => {
+      currentBlurRadius = Number(e.target.value)
+      blurRadiusDisplay.textContent = currentBlurRadius
+    })
+
+    // Recreate pipeline on blur radius change (on release, not during drag)
+    blurRadiusSlider.addEventListener('change', async () => {
+      if (!pipeline || !stream) return
+      try {
+        setStatus('Rebuilding...', 'loading')
+        await createPipeline()
+      } catch (err) {
+        console.warn('[demo] Pipeline rebuild failed:', err)
+        setStatus('Error', 'error')
+      }
+    })
+
+    temporalBlendSlider.addEventListener('input', (e) => {
+      currentTemporalBlend = Number(e.target.value)
+      temporalBlendDisplay.textContent = currentTemporalBlend.toFixed(2)
+    })
+
+    temporalBlendSlider.addEventListener('change', async () => {
+      if (!pipeline || !stream) return
+      try {
+        setStatus('Rebuilding...', 'loading')
+        await createPipeline()
+      } catch (err) {
+        console.warn('[demo] Pipeline rebuild failed:', err)
+        setStatus('Error', 'error')
+      }
+    })
+
+    modelSelect.addEventListener('change', async (e) => {
+      currentModel = e.target.value
+      if (!pipeline || !stream) return
+      try {
+        setStatus('Switching model...', 'loading')
+        await createPipeline()
+      } catch (err) {
+        console.warn('[demo] Model switch failed:', err)
+        setStatus('Error', 'error')
+      }
+    })
+  </script>
+</body>
+</html>
