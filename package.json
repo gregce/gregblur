@@ -61,6 +61,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "check": "tsc --noEmit",
+    "docs": "node docs/render-diagrams.mjs",
     "prepublishOnly": "npm run build"
   }
 }
