@@ -68,6 +68,9 @@ export function createMediaPipeProvider(
 
   return {
     async init(canvas: HTMLCanvasElement | OffscreenCanvas): Promise<void> {
+      // Reset timestamp state so re-init after destroy works correctly
+      lastTimestampMs = -1
+
       // Dynamic import — works whether the consumer has @mediapipe/tasks-vision
       // installed locally or the bundler resolves from CDN.
       const vision = await import('@mediapipe/tasks-vision')
