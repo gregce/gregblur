@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 798.4569999999998 258.70000000000005" width="798.4569999999998" height="258.70000000000005" style="--bg:#1a1b26;--fg:#a9b1d6;--line:#3d59a1;--accent:#7aa2f7;--muted:#565f89;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="downsample" data-label="Stage 5: Masked Downsample">
+  <rect x="40" y="40" width="718.4569999999998" height="178.70000000000002" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="40" width="718.4569999999998" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="52" y="54" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">Stage 5: Masked Downsample</text>
+</g>
+<polyline class="edge" data-from="FULL" data-to="DS" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="219.47399999999993,175.8 241.25099999999995,175.8 241.25099999999995,139.125 263.02799999999996,139.125" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="MASK" data-to="DS" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="210.582,102.45 241.25099999999995,102.45 241.25099999999995,139.125 263.02799999999996,139.125" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="DS" data-to="HALF" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="526.5369999999998,139.125 574.5369999999998,139.125" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="node" data-id="FULL" data-label="Full-Res Frame
+(frameOrientedFBO)" data-shape="rectangle">
+  <rect x="60.445999999999984" y="148.9" width="159.02799999999996" height="53.800000000000004" rx="0" ry="0" fill="#3b82f6" stroke="#1d4ed8" stroke-width="0.75" />
+  <text x="139.95999999999998" y="175.8" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="139.95999999999998" dy="-3.9000000000000012">Full-Res Frame</tspan><tspan x="139.95999999999998" dy="16.900000000000002">(frameOrientedFBO)</tspan></text>
+</g>
+<g class="node" data-id="DS" data-label="MASKED_DOWNSAMPLE_SHADER
+bgWeight = 1 − smoothstep(0.12, 0.55, fg)" data-shape="rectangle">
+  <rect x="263.02799999999996" y="112.225" width="263.5089999999999" height="53.800000000000004" rx="0" ry="0" fill="#10b981" stroke="#047857" stroke-width="0.75" />
+  <text x="394.7824999999999" y="139.125" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="394.7824999999999" dy="-3.9000000000000012">MASKED_DOWNSAMPLE_SHADER</tspan><tspan x="394.7824999999999" dy="16.900000000000002">bgWeight = 1 − smoothstep(0.12, 0.55, fg)</tspan></text>
+</g>
+<g class="node" data-id="MASK" data-label="Foreground Mask" data-shape="rectangle">
+  <rect x="60.445999999999984" y="84" width="150.136" height="36.900000000000006" rx="0" ry="0" fill="#fbbf24" stroke="#92400e" stroke-width="0.75" />
+  <text x="135.51399999999998" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="#1e3a5f" dy="4.55">Foreground Mask</text>
+</g>
+<g class="node" data-id="HALF" data-label="Half-Res Background
+(bgDownFBO)" data-shape="rectangle">
+  <rect x="574.5369999999998" y="112.225" width="167.92" height="53.800000000000004" rx="0" ry="0" fill="#34d399" stroke="#059669" stroke-width="0.75" />
+  <text x="658.4969999999998" y="139.125" text-anchor="middle" font-size="13" font-weight="500" fill="#1e3a5f"><tspan x="658.4969999999998" dy="-3.9000000000000012">Half-Res Background</tspan><tspan x="658.4969999999998" dy="16.900000000000002">(bgDownFBO)</tspan></text>
+</g>
+</svg>

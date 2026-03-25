@@ -6,6 +6,13 @@ How gregblur transforms a raw camera frame into a professional-looking blurred-b
 
 Every video frame passes through 8 GPU stages in a single draw cycle. The pipeline never touches the CPU for pixel work — all compositing, filtering, and blurring happens in fragment shaders operating on WebGL2 framebuffer objects (FBOs).
 
+<p align="center">
+  <img src="diagrams/overview.svg" alt="gregblur 8-stage pipeline overview" width="340" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 graph TD
   subgraph pipeline ["gregblur Pipeline"]
@@ -29,11 +36,20 @@ graph TD
   style H fill:#6366f1,stroke:#4338ca,color:#ffffff
 ```
 
+</details>
+
 ## Stage-by-Stage Breakdown
 
 ### Stage 1 — Upload
 
 The raw camera frame (from `VideoFrame`, `HTMLVideoElement`, or `HTMLCanvasElement`) is uploaded to a WebGL2 RGBA texture. A copy shader with Y-flip normalises the camera orientation into a consistent coordinate space for all subsequent passes.
+
+<p align="center">
+  <img src="diagrams/stage-1-upload.svg" alt="Stage 1: Upload" width="500" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -48,11 +64,24 @@ graph LR
   style FOF fill:#93c5fd,stroke:#3b82f6,color:#1e3a5f
 ```
 
+</details>
+
 ### Stage 2 — Segmentation
 
 The segmentation provider (MediaPipe by default) analyses the frame and produces a **confidence mask** — a single-channel texture where each pixel is a probability between 0.0 (definitely person) and 1.0 (definitely background).
 
 This is fundamentally different from a binary mask. Confidence values give native soft edges around hair, glasses, and clothing without any post-processing.
+
+<p align="center">
+  <img src="diagrams/stage-2-segmentation.svg" alt="Stage 2: Segmentation" width="500" />
+</p>
+
+<p align="center">
+  <img src="diagrams/stage-2-mask-values.svg" alt="Confidence mask value range" width="300" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -76,11 +105,24 @@ graph LR
   style FG fill:#22c55e,stroke:#15803d,color:#ffffff
 ```
 
+</details>
+
 ### Stage 3 — Joint Bilateral Filter
 
 The raw confidence mask has fuzzy, low-resolution edges (MediaPipe runs at 256x256). The bilateral filter uses the **original frame's colour** as a guide signal to snap mask edges to real image boundaries.
 
 Where the image is uniform (wall, desk), the filter smooths the mask. Where there's a real edge (hair against wall, glasses frame), dissimilar colours suppress smoothing and the edge stays sharp.
+
+<p align="center">
+  <img src="diagrams/stage-3-bilateral.svg" alt="Stage 3: Joint Bilateral Filter" width="420" />
+</p>
+
+<p align="center">
+  <img src="diagrams/stage-3-weights.svg" alt="Bilateral filter per-sample weighting" width="500" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -106,11 +148,20 @@ graph TD
   style FW fill:#f59e0b,stroke:#b45309,color:#ffffff
 ```
 
+</details>
+
 ### Stage 4 — Temporal Blend
 
 Frame-to-frame mask jitter causes visible flickering, especially on profile turns. Temporal blending applies an exponential moving average (EMA): 76% current frame + 24% previous frame.
 
 The previous frame's mask is stored in `prevMaskFBO` and updated every frame.
+
+<p align="center">
+  <img src="diagrams/stage-4-temporal.svg" alt="Stage 4: Temporal EMA" width="600" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -128,11 +179,20 @@ graph LR
   style FINAL fill:#fbbf24,stroke:#92400e,color:#1e3a5f
 ```
 
+</details>
+
 ### Stage 5 — Masked Downsample
 
 Before blurring, the frame is downsampled to half resolution. But naive downsampling would bake the subject's pixels into the low-res texels, creating ghosting artifacts.
 
 The masked downsample shader weights each sample by `(1 - foreground)`, so person pixels contribute less to the downsampled background.
+
+<p align="center">
+  <img src="diagrams/stage-5-downsample.svg" alt="Stage 5: Masked Downsample" width="600" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -149,11 +209,24 @@ graph LR
   style HALF fill:#34d399,stroke:#059669,color:#1e3a5f
 ```
 
+</details>
+
 ### Stage 6 — Mask-Weighted Gaussian Blur
 
 This is the key anti-halo technique. A naive Gaussian blur smears foreground pixels into the background, creating a bright "ghost" around the subject.
 
 The mask-weighted blur multiplies each Gaussian sample by `(1 - maskVal)`, suppressing foreground contributions. The blur is separable (horizontal + vertical passes) for O(r) instead of O(r²) samples.
+
+<p align="center">
+  <img src="diagrams/stage-6-blur.svg" alt="Stage 6: Mask-Weighted Blur" width="420" />
+</p>
+
+<p align="center">
+  <img src="diagrams/stage-6-weighting.svg" alt="Per-sample weight calculation" width="500" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -183,11 +256,20 @@ graph TD
   style TW fill:#06b6d4,stroke:#155e75,color:#ffffff
 ```
 
+</details>
+
 ### Stage 7 — Composite
 
 The final composite mixes the blurred background with the original frame using the foreground mask. The `smoothstep(0.26, 0.72, mask + 0.035)` function creates a clean, tunable soft edge.
 
 The `+0.035` offset is foreground-biased — it preserves ears, temples, and profile edges even when MediaPipe's model is conservative.
+
+<p align="center">
+  <img src="diagrams/stage-7-composite.svg" alt="Stage 7: Composite" width="600" />
+</p>
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -206,12 +288,19 @@ graph LR
   style OUT fill:#fb7185,stroke:#e11d48,color:#ffffff
 ```
 
+</details>
+
 ### Stage 8 — Output
 
 The composited result is rendered to the pipeline's canvas. Two output paths are available:
 
 - **Insertable Streams** (Chrome/Edge): Zero-copy via `TransformStream` — each frame is wrapped in a new `VideoFrame` from the `OffscreenCanvas`
 - **Fallback** (Safari/Firefox): The canvas is captured via `captureStream(30)` and the resulting `MediaStreamTrack` is used directly
+
+> Stage 8 uses a decision diamond which beautiful-mermaid does not render — see the Mermaid source below for the full diagram (renders natively on GitHub).
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -231,9 +320,16 @@ graph TD
   style TRACK fill:#4f46e5,stroke:#3730a3,color:#ffffff
 ```
 
+</details>
+
 ## GPU Resource Map
 
 All FBOs and textures used in a single frame, showing how data flows between them.
+
+> This diagram has cross-subgraph edges which beautiful-mermaid does not support — see the Mermaid source below (renders natively on GitHub).
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -272,9 +368,16 @@ graph TD
   style SCREEN fill:#f43f5e,stroke:#be123c,color:#ffffff
 ```
 
+</details>
+
 ## Shader Program Map
 
 Which vertex + fragment shader pairs make up each program, and where each program is used in the pipeline.
+
+> This diagram has cross-subgraph edges which beautiful-mermaid does not support — see the Mermaid source below (renders natively on GitHub).
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -306,6 +409,8 @@ graph LR
   style P7 fill:#f43f5e,stroke:#be123c,color:#ffffff
 ```
 
+</details>
+
 ## Why Each Stage Matters
 
 | Stage | Without It | With It |
@@ -316,3 +421,7 @@ graph LR
 | **Mask-weighted blur** | Bright "halo" around the subject from foreground bleed | Foreground suppressed — no halo artifacts |
 | **Foreground bias** | Ears, temples, thin hair lost on profile turns | +0.035 offset preserves conservative model predictions |
 | **Smoothstep composite** | Hard, jaggy transition between person and blur | Clean soft edge with tunable falloff |
+
+---
+
+*Diagrams rendered with [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) using the tokyo-night theme. Regenerate with `npm run docs`.*

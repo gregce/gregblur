@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768.555 367.6" width="768.555" height="367.6" style="--bg:#1a1b26;--fg:#a9b1d6;--line:#3d59a1;--accent:#7aa2f7;--muted:#565f89;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="seg" data-label="Stage 2: Segmentation">
+  <rect x="40" y="213.8" width="688.555" height="113.80000000000001" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="213.8" width="688.555" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="52" y="227.8" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">Stage 2: Segmentation</text>
+</g>
+<g class="subgraph" data-id="mask_values" data-label="Mask Values">
+  <rect x="40" y="40" width="173.244" height="153.8" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="40" width="173.244" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="52" y="54" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">Mask Values</text>
+</g>
+<polyline class="edge" data-from="FRAME" data-to="MP" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="segmentForVideo()" points="184.647,284.70000000000005 380.58500000000004,284.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="MP" data-to="CONF" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="520.347,284.70000000000005 568.347,284.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="FRAME" data-to="MP" data-label="segmentForVideo()">
+  <rect x="228.647" y="268.70000000000005" width="107.93800000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="282.616" y="283.85" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">segmentForVideo()</text>
+</g>
+<g class="node" data-id="FRAME" data-label="Camera Frame" data-shape="rectangle">
+  <rect x="56" y="266.25" width="128.647" height="36.900000000000006" rx="0" ry="0" fill="#3b82f6" stroke="#1d4ed8" stroke-width="0.75" />
+  <text x="120.3235" y="284.7" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff" dy="4.55">Camera Frame</text>
+</g>
+<g class="node" data-id="MP" data-label="MediaPipe
+ImageSegmenter" data-shape="rectangle">
+  <rect x="380.58500000000004" y="257.8" width="139.762" height="53.800000000000004" rx="0" ry="0" fill="#8b5cf6" stroke="#6d28d9" stroke-width="0.75" />
+  <text x="450.466" y="284.7" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="450.466" dy="-3.9000000000000012">MediaPipe</tspan><tspan x="450.466" dy="16.900000000000002">ImageSegmenter</tspan></text>
+</g>
+<g class="node" data-id="CONF" data-label="Confidence Mask
+(WebGL Texture)" data-shape="rectangle">
+  <rect x="568.347" y="257.8" width="144.208" height="53.800000000000004" rx="0" ry="0" fill="#a78bfa" stroke="#7c3aed" stroke-width="0.75" />
+  <text x="640.451" y="284.7" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="640.451" dy="-3.9000000000000012">Confidence Mask</tspan><tspan x="640.451" dy="16.900000000000002">(WebGL Texture)</tspan></text>
+</g>
+<g class="node" data-id="BG" data-label="1.0 = Background" data-shape="rectangle">
+  <rect x="56" y="140.9" width="141.244" height="36.900000000000006" rx="0" ry="0" fill="#ef4444" stroke="#b91c1c" stroke-width="0.75" />
+  <text x="126.622" y="159.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff" dy="4.55">1.0 = Background</text>
+</g>
+<g class="node" data-id="MID" data-label="MID" data-shape="rectangle">
+  <rect x="56" y="84" width="64.92099999999999" height="36.900000000000006" rx="0" ry="0" fill="#f59e0b" stroke="#d97706" stroke-width="0.75" />
+  <text x="88.4605" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff" dy="4.55">MID</text>
+</g>
+</svg>

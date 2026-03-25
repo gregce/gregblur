@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 466.948 655.83" width="466.948" height="655.83" style="--bg:#1a1b26;--fg:#a9b1d6;--line:#3d59a1;--accent:#7aa2f7;--muted:#565f89;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="output" data-label="Stage 8: Output Paths">
+  <rect x="40" y="40" width="386.948" height="575.83" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="40" width="386.948" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="52" y="54" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">Stage 8: Output Paths</text>
+</g>
+<polyline class="edge" data-from="CANVAS" data-to="IS_CHECK" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="237.54949999999997,137.8 237.54949999999997,185.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="IS_CHECK" data-to="IS_PATH" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Yes" points="258.42116666666664,290.1583333333333 258.42116666666664,323.03 333.28649999999993,323.03 333.2865,431.55499999999995" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="IS_CHECK" data-to="RAF_PATH" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="No" points="216.6778333333333,290.1583333333333 216.6778333333333,323.03 141.8125,323.03 141.8125,431.55499999999995" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="IS_PATH" data-to="TRACK" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="333.2865,519.155 333.2865,541.0425 237.54949999999997,541.0425 237.54949999999997,562.9300000000001" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="RAF_PATH" data-to="TRACK" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="141.8125,502.25499999999994 141.8125,541.0425 237.54949999999997,541.0425 237.54949999999997,562.9300000000001" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="IS_CHECK" data-to="IS_PATH" data-label="Yes">
+  <rect x="314.78649999999993" y="354.03" width="36.658" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="333.11549999999994" y="369.17999999999995" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Yes</text>
+</g>
+<g class="edge-label" data-from="IS_CHECK" data-to="RAF_PATH" data-label="No">
+  <rect x="126.31249999999997" y="354.03" width="30.718000000000004" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="141.67149999999998" y="369.17999999999995" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">No</text>
+</g>
+<g class="node" data-id="CANVAS" data-label="Pipeline Canvas
+(WebGL2 output)" data-shape="rectangle">
+  <rect x="168.40949999999998" y="84" width="138.28" height="53.800000000000004" rx="0" ry="0" fill="#6366f1" stroke="#4338ca" stroke-width="0.75" />
+  <text x="237.54949999999997" y="110.9" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="237.54949999999997" dy="-3.9000000000000012">Pipeline Canvas</tspan><tspan x="237.54949999999997" dy="16.900000000000002">(WebGL2 output)</tspan></text>
+</g>
+<g class="node" data-id="IS_CHECK" data-label="Insertable
+Streams?" data-shape="diamond">
+  <polygon points="237.54949999999997,185.8 300.1645,248.41500000000002 237.54949999999997,311.03000000000003 174.93449999999996,248.41500000000002" fill="#a78bfa" stroke="#7c3aed" stroke-width="0.75" />
+  <text x="237.54949999999997" y="248.41500000000002" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="237.54949999999997" dy="-3.9000000000000012">Insertable</tspan><tspan x="237.54949999999997" dy="16.900000000000002">Streams?</tspan></text>
+</g>
+<g class="node" data-id="IS_PATH" data-label="OffscreenCanvas
+→ VideoFrame
+→ TransformStream
+→ TrackGenerator" data-shape="rectangle">
+  <rect x="255.625" y="431.55499999999995" width="155.32299999999998" height="87.60000000000001" rx="0" ry="0" fill="#818cf8" stroke="#4f46e5" stroke-width="0.75" />
+  <text x="333.2865" y="475.35499999999996" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="333.2865" dy="-20.8">OffscreenCanvas</tspan><tspan x="333.2865" dy="16.900000000000002">→ VideoFrame</tspan><tspan x="333.2865" dy="16.900000000000002">→ TransformStream</tspan><tspan x="333.2865" dy="16.900000000000002">→ TrackGenerator</tspan></text>
+</g>
+<g class="node" data-id="RAF_PATH" data-label="HTMLCanvasElement
+→ captureStream(30)
+→ MediaStreamTrack" data-shape="rectangle">
+  <rect x="56" y="431.55499999999995" width="171.62499999999997" height="70.7" rx="0" ry="0" fill="#818cf8" stroke="#4f46e5" stroke-width="0.75" />
+  <text x="141.8125" y="466.905" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff"><tspan x="141.8125" dy="-12.350000000000001">HTMLCanvasElement</tspan><tspan x="141.8125" dy="16.900000000000002">→ captureStream(30)</tspan><tspan x="141.8125" dy="16.900000000000002">→ MediaStreamTrack</tspan></text>
+</g>
+<g class="node" data-id="TRACK" data-label="Output Track" data-shape="rectangle">
+  <rect x="178.41299999999995" y="562.9300000000001" width="118.273" height="36.900000000000006" rx="0" ry="0" fill="#4f46e5" stroke="#3730a3" stroke-width="0.75" />
+  <text x="237.54949999999997" y="581.3800000000001" text-anchor="middle" font-size="13" font-weight="500" fill="#ffffff" dy="4.55">Output Track</text>
+</g>
+</svg>
