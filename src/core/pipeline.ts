@@ -30,6 +30,60 @@ import {
   COMPOSITE_SHADER,
 } from './shaders.js'
 
+function sanitisePositiveNumber(
+  value: number | undefined,
+  fallback: number,
+  minimum: number,
+): number {
+  return Number.isFinite(value) ? Math.max(minimum, value as number) : fallback
+}
+
+function sanitiseInteger(
+  value: number | undefined,
+  fallback: number,
+  minimum: number,
+): number {
+  const normalised = Number.isFinite(value) ? Math.floor(value as number) : fallback
+  return Math.max(minimum, normalised)
+}
+
+function sanitiseUnitInterval(value: number | undefined, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback
+  return Math.min(1, Math.max(0, value as number))
+}
+
+function getSourceDimensions(source: TexImageSource): { width: number; height: number } {
+  if (typeof HTMLVideoElement !== 'undefined' && source instanceof HTMLVideoElement) {
+    return {
+      width: source.videoWidth,
+      height: source.videoHeight,
+    }
+  }
+
+  if (typeof VideoFrame !== 'undefined' && source instanceof VideoFrame) {
+    return {
+      width: source.displayWidth,
+      height: source.displayHeight,
+    }
+  }
+
+  if (typeof HTMLCanvasElement !== 'undefined' && source instanceof HTMLCanvasElement) {
+    return {
+      width: source.width,
+      height: source.height,
+    }
+  }
+
+  if (typeof OffscreenCanvas !== 'undefined' && source instanceof OffscreenCanvas) {
+    return {
+      width: source.width,
+      height: source.height,
+    }
+  }
+
+  return { width: 0, height: 0 }
+}
+
 /**
  * Creates the core gregblur pipeline.
  *
@@ -41,11 +95,11 @@ export function createGregblurPipeline(
   provider: SegmentationProvider,
   options?: GregblurOptions,
 ): GregblurPipeline {
-  const blurRadius = options?.blurRadius ?? 25
-  const sigmaSpace = options?.bilateralSigmaSpace ?? 4.0
-  const sigmaColor = options?.bilateralSigmaColor ?? 0.1
-  const downsampleFactor = options?.downsampleFactor ?? 2
-  const temporalBlendFactor = options?.temporalBlendFactor ?? 0.24
+  const blurRadius = sanitisePositiveNumber(options?.blurRadius, 25, 1)
+  const sigmaSpace = sanitisePositiveNumber(options?.bilateralSigmaSpace, 4.0, 0.001)
+  const sigmaColor = sanitisePositiveNumber(options?.bilateralSigmaColor, 0.1, 0.001)
+  const downsampleFactor = sanitiseInteger(options?.downsampleFactor, 2, 1)
+  const temporalBlendFactor = sanitiseUnitInterval(options?.temporalBlendFactor, 0.24)
 
   // ── Mutable state ──────────────────────────────────────────────────────
 
@@ -156,6 +210,69 @@ export function createGregblurPipeline(
     gl.bindVertexArray(null)
   }
 
+  function renderOrientedFrame(): void {
+    if (!gl || !copyProgram || !frameOrientedFBO) return
+
+    gl.useProgram(copyProgram)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.viewport(0, 0, width, height)
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, frameOrientedFBO.texture)
+    gl.uniform1i(gl.getUniformLocation(copyProgram, 'u_texture'), 0)
+    drawQuad()
+  }
+
+  function destroyInternal(): void {
+    try {
+      provider.destroy()
+    } catch {
+      // Ignore provider cleanup errors during shutdown.
+    }
+
+    if (gl) {
+      destroyFBOs()
+
+      if (bilateralProgram) gl.deleteProgram(bilateralProgram)
+      if (temporalBlendProgram) gl.deleteProgram(temporalBlendProgram)
+      if (copySourceProgram) gl.deleteProgram(copySourceProgram)
+      if (copyProgram) gl.deleteProgram(copyProgram)
+      if (maskedDownsampleProgram) gl.deleteProgram(maskedDownsampleProgram)
+      if (maskWeightedBlurProgram) gl.deleteProgram(maskWeightedBlurProgram)
+      if (compositeProgram) gl.deleteProgram(compositeProgram)
+
+      if (quad) {
+        gl.deleteVertexArray(quad)
+      }
+
+      const ext = gl.getExtension('WEBGL_lose_context')
+      if (ext) ext.loseContext()
+    }
+
+    bilateralProgram = null
+    temporalBlendProgram = null
+    copySourceProgram = null
+    copyProgram = null
+    maskedDownsampleProgram = null
+    maskWeightedBlurProgram = null
+    compositeProgram = null
+    quad = null
+    gl = null
+
+    if (
+      typeof HTMLCanvasElement !== 'undefined' &&
+      canvas instanceof HTMLCanvasElement &&
+      canvas.dataset.gregblurFallback === 'true'
+    ) {
+      canvas.remove()
+    }
+    canvas = null
+    width = 0
+    height = 0
+    bgWidth = 0
+    bgHeight = 0
+    hasPreviousMask = false
+  }
+
   // ── Per-frame transform ────────────────────────────────────────────────
 
   function processFrameInternal(source: TexImageSource, timestampMs: number): void {
@@ -181,18 +298,7 @@ export function createGregblurPipeline(
     }
 
     // Handle resolution changes mid-stream
-    let sourceWidth = 0
-    let sourceHeight = 0
-    if (source instanceof HTMLVideoElement) {
-      sourceWidth = source.videoWidth
-      sourceHeight = source.videoHeight
-    } else if (source instanceof VideoFrame) {
-      sourceWidth = source.displayWidth
-      sourceHeight = source.displayHeight
-    } else if (source instanceof HTMLCanvasElement || source instanceof OffscreenCanvas) {
-      sourceWidth = source.width
-      sourceHeight = source.height
-    }
+    const { width: sourceWidth, height: sourceHeight } = getSourceDimensions(source)
     if (sourceWidth > 0 && sourceHeight > 0 && (sourceWidth !== width || sourceHeight !== height)) {
       initGLResources(sourceWidth, sourceHeight)
     }
@@ -214,21 +320,20 @@ export function createGregblurPipeline(
 
     // Fast path when blur is disabled: just output the oriented frame
     if (!blurEnabled) {
-      gl.useProgram(copyProgram)
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-      gl.viewport(0, 0, width, height)
-      gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_2D, frameOrientedFBO.texture)
-      gl.uniform1i(gl.getUniformLocation(copyProgram, 'u_texture'), 0)
-      drawQuad()
+      renderOrientedFrame()
       return
     }
 
     // 2) Run segmentation → confidence mask
-    const segmentResult = provider.segment(source, timestampMs)
-    if (!segmentResult) return
+    let segmentResult: ReturnType<SegmentationProvider['segment']> | null = null
 
     try {
+      segmentResult = provider.segment(source, timestampMs)
+      if (!segmentResult) {
+        renderOrientedFrame()
+        return
+      }
+
       const bgConfidenceTexture = segmentResult.confidenceTexture
 
       // 3) Joint bilateral filter: refine mask using frame color as guide
@@ -358,9 +463,14 @@ export function createGregblurPipeline(
       drawQuad()
     } catch (e) {
       console.warn('[gregblur] Frame processing error:', e)
+      renderOrientedFrame()
     } finally {
       // Release provider resources (e.g. MediaPipe mask handles)
-      segmentResult.close()
+      try {
+        segmentResult?.close()
+      } catch (closeError) {
+        console.warn('[gregblur] Failed to release segmentation result:', closeError)
+      }
     }
   }
 
@@ -368,6 +478,10 @@ export function createGregblurPipeline(
 
   const pipeline: GregblurPipeline = {
     async init(w: number, h: number): Promise<void> {
+      if (canvas || gl) {
+        destroyInternal()
+      }
+
       // Prefer OffscreenCanvas when Insertable Streams are available
       const g = globalThis as typeof globalThis & {
         MediaStreamTrackProcessor?: unknown
@@ -377,9 +491,16 @@ export function createGregblurPipeline(
         typeof g.MediaStreamTrackProcessor === 'function' &&
         typeof g.MediaStreamTrackGenerator === 'function'
 
-      if (hasIS && typeof OffscreenCanvas !== 'undefined') {
+      const canUseOffscreenCanvas =
+        typeof OffscreenCanvas !== 'undefined' &&
+        (hasIS || typeof document === 'undefined')
+
+      if (canUseOffscreenCanvas) {
         canvas = new OffscreenCanvas(w, h)
       } else {
+        if (typeof document === 'undefined') {
+          throw new Error('[gregblur] HTMLCanvasElement is not available in this environment.')
+        }
         canvas = document.createElement('canvas')
         canvas.width = w
         canvas.height = h
@@ -396,20 +517,33 @@ export function createGregblurPipeline(
         throw new Error('[gregblur] WebGL2 not available.')
       }
 
-      // Compile shader programs
-      bilateralProgram = createProgram(gl, VERTEX_SHADER, BILATERAL_FILTER_SHADER)
-      temporalBlendProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, TEMPORAL_BLEND_SHADER)
-      copySourceProgram = createProgram(gl, VERTEX_SHADER, COPY_SHADER)
-      copyProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, COPY_SHADER)
-      maskedDownsampleProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, MASKED_DOWNSAMPLE_SHADER)
-      maskWeightedBlurProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, MASK_WEIGHTED_BLUR_SHADER)
-      compositeProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, COMPOSITE_SHADER)
+      try {
+        // Compile shader programs
+        bilateralProgram = createProgram(gl, VERTEX_SHADER, BILATERAL_FILTER_SHADER)
+        temporalBlendProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, TEMPORAL_BLEND_SHADER)
+        copySourceProgram = createProgram(gl, VERTEX_SHADER, COPY_SHADER)
+        copyProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, COPY_SHADER)
+        maskedDownsampleProgram = createProgram(
+          gl,
+          VERTEX_SHADER_NO_FLIP,
+          MASKED_DOWNSAMPLE_SHADER,
+        )
+        maskWeightedBlurProgram = createProgram(
+          gl,
+          VERTEX_SHADER_NO_FLIP,
+          MASK_WEIGHTED_BLUR_SHADER,
+        )
+        compositeProgram = createProgram(gl, VERTEX_SHADER_NO_FLIP, COMPOSITE_SHADER)
 
-      quad = createFullscreenQuad(gl)
-      initGLResources(w, h)
+        quad = createFullscreenQuad(gl)
+        initGLResources(w, h)
 
-      // Initialise the segmentation provider with the shared canvas/GL context
-      await provider.init(canvas)
+        // Initialise the segmentation provider with the shared canvas/GL context
+        await provider.init(canvas)
+      } catch (error) {
+        destroyInternal()
+        throw error
+      }
     },
 
     processFrame(source: TexImageSource, timestampMs: number): void {
@@ -426,6 +560,9 @@ export function createGregblurPipeline(
     },
 
     setEnabled(enabled: boolean): void {
+      if (blurEnabled !== enabled) {
+        hasPreviousMask = false
+      }
       blurEnabled = enabled
     },
 
@@ -434,44 +571,7 @@ export function createGregblurPipeline(
     },
 
     destroy(): void {
-      // Tear down provider first (may reference our GL context)
-      provider.destroy()
-
-      if (gl) {
-        destroyFBOs()
-
-        if (bilateralProgram) gl.deleteProgram(bilateralProgram)
-        if (temporalBlendProgram) gl.deleteProgram(temporalBlendProgram)
-        if (copySourceProgram) gl.deleteProgram(copySourceProgram)
-        if (copyProgram) gl.deleteProgram(copyProgram)
-        if (maskedDownsampleProgram) gl.deleteProgram(maskedDownsampleProgram)
-        if (maskWeightedBlurProgram) gl.deleteProgram(maskWeightedBlurProgram)
-        if (compositeProgram) gl.deleteProgram(compositeProgram)
-        bilateralProgram = null
-        temporalBlendProgram = null
-        copySourceProgram = null
-        copyProgram = null
-        maskedDownsampleProgram = null
-        maskWeightedBlurProgram = null
-        compositeProgram = null
-
-        if (quad) {
-          gl.deleteVertexArray(quad)
-          quad = null
-        }
-
-        const ext = gl.getExtension('WEBGL_lose_context')
-        if (ext) ext.loseContext()
-        gl = null
-      }
-
-      if (
-        canvas instanceof HTMLCanvasElement &&
-        canvas.dataset.gregblurFallback === 'true'
-      ) {
-        canvas.remove()
-      }
-      canvas = null
+      destroyInternal()
     },
   }
 

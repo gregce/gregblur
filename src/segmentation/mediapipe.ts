@@ -9,7 +9,6 @@
 import type { SegmentationProvider, SegmentationResult } from './types.js'
 
 const MEDIAPIPE_VERSION = '0.10.14'
-const DEFAULT_WASM_BASE_PATH = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
 
 const SEGMENTATION_MODEL_URLS = {
   'selfie-multiclass-256':
@@ -26,10 +25,64 @@ export interface MediaPipeProviderOptions {
   model?: MediaPipeModel
   /** Override the MediaPipe WASM version loaded from CDN. Default: '0.10.14' */
   mediapipeVersion?: string
+  /** Override the MediaPipe ESM bundle URL (for self-hosted deployments). */
+  visionBundleUrl?: string
   /** Override the WASM base path (for self-hosted deployments). */
   wasmBasePath?: string
   /** Override the model URL (for self-hosted model files). */
   modelUrl?: string
+}
+
+interface MediaPipeImageSegmenterResult {
+  confidenceMasks?: Array<{
+    getAsWebGLTexture(): WebGLTexture
+  }>
+  close?: () => void
+}
+
+interface MediaPipeImageSegmenter {
+  segmentForVideo(source: TexImageSource, timestampMs: number): MediaPipeImageSegmenterResult
+  close(): void
+}
+
+interface MediaPipeVisionModule {
+  FilesetResolver: {
+    forVisionTasks(wasmBasePath: string): Promise<unknown>
+  }
+  ImageSegmenter: {
+    createFromOptions(
+      fileset: unknown,
+      options: {
+        baseOptions: {
+          modelAssetPath: string
+          delegate: 'GPU'
+        }
+        runningMode: 'VIDEO'
+        outputCategoryMask: false
+        outputConfidenceMasks: true
+        canvas: HTMLCanvasElement | OffscreenCanvas
+      },
+    ): Promise<MediaPipeImageSegmenter>
+  }
+}
+
+function getVisionBundleUrl(version: string): string {
+  return `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${version}/vision_bundle.mjs`
+}
+
+function getWasmBasePath(version: string): string {
+  return `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${version}/wasm`
+}
+
+async function loadVisionModule(visionBundleUrl: string): Promise<MediaPipeVisionModule> {
+  try {
+    return (await import(/* @vite-ignore */ visionBundleUrl)) as MediaPipeVisionModule
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `[gregblur] Failed to load MediaPipe vision bundle from ${visionBundleUrl}. ${detail}`,
+    )
+  }
 }
 
 /**
@@ -44,12 +97,11 @@ export function createMediaPipeProvider(
   const model = options?.model ?? 'selfie-multiclass-256'
   const modelUrl = options?.modelUrl ?? SEGMENTATION_MODEL_URLS[model]
   const version = options?.mediapipeVersion ?? MEDIAPIPE_VERSION
+  const visionBundleUrl = options?.visionBundleUrl ?? getVisionBundleUrl(version)
   const wasmBasePath =
-    options?.wasmBasePath ??
-    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${version}/wasm`
+    options?.wasmBasePath ?? getWasmBasePath(version)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let segmenter: any = null
+  let segmenter: MediaPipeImageSegmenter | null = null
   let lastTimestampMs = -1
 
   /**
@@ -70,10 +122,16 @@ export function createMediaPipeProvider(
     async init(canvas: HTMLCanvasElement | OffscreenCanvas): Promise<void> {
       // Reset timestamp state so re-init after destroy works correctly
       lastTimestampMs = -1
+      if (segmenter) {
+        try {
+          segmenter.close()
+        } catch {
+          // Ignore close errors while replacing an older instance.
+        }
+        segmenter = null
+      }
 
-      // Dynamic import — works whether the consumer has @mediapipe/tasks-vision
-      // installed locally or the bundler resolves from CDN.
-      const vision = await import('@mediapipe/tasks-vision')
+      const vision = await loadVisionModule(visionBundleUrl)
       const wasmFileset = await vision.FilesetResolver.forVisionTasks(
         wasmBasePath,
       )

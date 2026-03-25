@@ -61,6 +61,10 @@ export function supportsInsertableStreams(): boolean {
   )
 }
 
+export function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError'
+}
+
 // ─── Pipeline implementations ───────────────────────────────────────────
 
 /**
@@ -83,7 +87,7 @@ export function startInsertableStreamsPipeline(
   const mstp = new MSTPConstructor({ track: sourceTrack, maxBufferSize: 1 })
   const generator = new MSTGConstructor({ kind: 'video' })
 
-  const canvas = pipeline.getCanvas()
+  const canvas = pipeline.getCanvas() as CanvasImageSource
   const blurEnabled = () => pipeline.isEnabled()
 
   const transformer = new TransformStream<VideoFrame, VideoFrame>({
@@ -105,7 +109,7 @@ export function startInsertableStreamsPipeline(
         )
 
         if (canvas) {
-          const outputFrame = new VideoFrame(canvas as OffscreenCanvas, {
+          const outputFrame = new VideoFrame(canvas, {
             timestamp: frame.timestamp ?? 0,
           })
           controller.enqueue(outputFrame)
@@ -121,7 +125,7 @@ export function startInsertableStreamsPipeline(
   })
 
   mstp.readable.pipeThrough(transformer).pipeTo(generator.writable).catch((e: unknown) => {
-    if ((e as DOMException)?.name !== 'AbortError') {
+    if (!isAbortError(e)) {
       console.warn('[gregblur] Pipeline error:', e)
     }
   })
@@ -142,6 +146,10 @@ export function startRAFPipeline(
   outputTrack: MediaStreamTrack
   cleanup: () => void
 } {
+  if (typeof document === 'undefined') {
+    throw new Error('[gregblur] RAF pipeline requires document support.')
+  }
+
   let animFrameId: number | null = null
   let videoFrameCallbackId: number | null = null
 
@@ -152,7 +160,10 @@ export function startRAFPipeline(
   video.autoplay = true
   video.play().catch(() => {})
 
-  const outputCanvas = pipeline.getCanvas() as HTMLCanvasElement
+  const outputCanvas = pipeline.getCanvas()
+  if (!(outputCanvas instanceof HTMLCanvasElement)) {
+    throw new Error('[gregblur] RAF pipeline requires an HTMLCanvasElement output canvas.')
+  }
   if (!outputCanvas.isConnected) {
     // WebKit is more reliable when the captured canvas participates in page
     // rendering, even if it remains visually hidden.
@@ -160,8 +171,14 @@ export function startRAFPipeline(
     outputCanvas.style.display = 'none'
     document.body.appendChild(outputCanvas)
   }
+  if (typeof outputCanvas.captureStream !== 'function') {
+    throw new Error('[gregblur] Canvas captureStream is not available in this browser.')
+  }
   const stream = outputCanvas.captureStream(30)
   const capturedTrack = stream.getVideoTracks()[0]
+  if (!capturedTrack) {
+    throw new Error('[gregblur] canvas.captureStream() did not return a video track.')
+  }
 
   function scheduleNextFrame(): void {
     if (signal.aborted) return
@@ -208,6 +225,7 @@ export function startRAFPipeline(
         video.cancelVideoFrameCallback(videoFrameCallbackId)
         videoFrameCallbackId = null
       }
+      video.pause()
       video.srcObject = null
     },
   }

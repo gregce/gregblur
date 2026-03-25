@@ -15,6 +15,7 @@ import { createGregblurPipeline } from '../core/pipeline.js'
 import { createMediaPipeProvider } from '../segmentation/mediapipe.js'
 import {
   waitForDimensions,
+  isAbortError,
   supportsInsertableStreams,
   startInsertableStreamsPipeline,
   startRAFPipeline,
@@ -59,23 +60,51 @@ export function createRawBlurProcessor(
   let outputTrack: MediaStreamTrack | null = null
   let rafCleanup: (() => void) | null = null
 
-  return {
+  function cleanupActiveRun(): void {
+    abortController?.abort()
+    abortController = null
+
+    rafCleanup?.()
+    rafCleanup = null
+
+    if (outputTrack) {
+      outputTrack.stop()
+      outputTrack = null
+    }
+
+    pipeline.destroy()
+  }
+
+  const processor: RawBlurProcessor = {
     async start(inputTrack: MediaStreamTrack): Promise<MediaStreamTrack> {
-      abortController = new AbortController()
-      const { signal } = abortController
+      cleanupActiveRun()
 
-      const { w, h } = await waitForDimensions(inputTrack, signal)
-      await pipeline.init(w, h)
+      const controller = new AbortController()
+      abortController = controller
+      const { signal } = controller
 
-      if (supportsInsertableStreams()) {
-        outputTrack = startInsertableStreamsPipeline(inputTrack, signal, pipeline)
-      } else {
-        const result = startRAFPipeline(inputTrack, signal, pipeline)
-        outputTrack = result.outputTrack
-        rafCleanup = result.cleanup
+      try {
+        const { w, h } = await waitForDimensions(inputTrack, signal)
+        await pipeline.init(w, h)
+
+        if (supportsInsertableStreams()) {
+          outputTrack = startInsertableStreamsPipeline(inputTrack, signal, pipeline)
+        } else {
+          const result = startRAFPipeline(inputTrack, signal, pipeline)
+          outputTrack = result.outputTrack
+          rafCleanup = result.cleanup
+        }
+
+        return outputTrack
+      } catch (error) {
+        if (abortController === controller) {
+          cleanupActiveRun()
+        }
+        if (isAbortError(error)) {
+          throw error
+        }
+        throw error
       }
-
-      return outputTrack
     },
 
     setEnabled(enabled: boolean): void {
@@ -87,18 +116,9 @@ export function createRawBlurProcessor(
     },
 
     async destroy(): Promise<void> {
-      abortController?.abort()
-      abortController = null
-
-      rafCleanup?.()
-      rafCleanup = null
-
-      if (outputTrack) {
-        outputTrack.stop()
-        outputTrack = null
-      }
-
-      pipeline.destroy()
+      cleanupActiveRun()
     },
   }
+
+  return processor
 }

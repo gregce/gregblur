@@ -13,6 +13,7 @@ import { createGregblurPipeline } from '../core/pipeline.js'
 import { createMediaPipeProvider } from '../segmentation/mediapipe.js'
 import {
   waitForDimensions,
+  isAbortError,
   supportsInsertableStreams,
   startInsertableStreamsPipeline,
   startRAFPipeline,
@@ -56,47 +57,63 @@ export function createLiveKitBlurProcessor(
   let outputTrack: MediaStreamTrack | null = null
   let rafCleanup: (() => void) | null = null
 
+  function cleanupActiveRun(): void {
+    abortController?.abort()
+    abortController = null
+
+    rafCleanup?.()
+    rafCleanup = null
+
+    if (outputTrack) {
+      outputTrack.stop()
+      outputTrack = null
+    }
+    processor.processedTrack = undefined
+
+    pipeline.destroy()
+  }
+
   const processor: LiveKitBlurProcessor = {
     name: 'gregblur',
 
     async init(opts: ProcessorOptions<Track.Kind>): Promise<void> {
-      abortController = new AbortController()
-      const { signal } = abortController
+      cleanupActiveRun()
 
-      const { w, h } = await waitForDimensions(opts.track, signal)
-      await pipeline.init(w, h)
+      const controller = new AbortController()
+      abortController = controller
+      const { signal } = controller
 
-      // Start the appropriate frame pipeline
-      if (supportsInsertableStreams()) {
-        outputTrack = startInsertableStreamsPipeline(opts.track, signal, pipeline)
-      } else {
-        const result = startRAFPipeline(opts.track, signal, pipeline)
-        outputTrack = result.outputTrack
-        rafCleanup = result.cleanup
+      try {
+        const { w, h } = await waitForDimensions(opts.track, signal)
+        await pipeline.init(w, h)
+
+        // Start the appropriate frame pipeline
+        if (supportsInsertableStreams()) {
+          outputTrack = startInsertableStreamsPipeline(opts.track, signal, pipeline)
+        } else {
+          const result = startRAFPipeline(opts.track, signal, pipeline)
+          outputTrack = result.outputTrack
+          rafCleanup = result.cleanup
+        }
+
+        processor.processedTrack = outputTrack
+      } catch (error) {
+        if (abortController === controller) {
+          cleanupActiveRun()
+        }
+        if (isAbortError(error)) {
+          return
+        }
+        throw error
       }
-
-      processor.processedTrack = outputTrack
     },
 
     async restart(opts: ProcessorOptions<Track.Kind>): Promise<void> {
-      await processor.destroy()
       await processor.init(opts)
     },
 
     async destroy(): Promise<void> {
-      abortController?.abort()
-      abortController = null
-
-      rafCleanup?.()
-      rafCleanup = null
-
-      if (outputTrack) {
-        outputTrack.stop()
-        outputTrack = null
-      }
-      processor.processedTrack = undefined
-
-      pipeline.destroy()
+      cleanupActiveRun()
     },
 
     setEnabled(enabled: boolean): void {

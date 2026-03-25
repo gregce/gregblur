@@ -30,13 +30,21 @@ export function createProgram(
   const vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc)
   const frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc)
   const program = gl.createProgram()
-  if (!program) throw new Error('Failed to create program')
+  if (!program) {
+    gl.deleteShader(vert)
+    gl.deleteShader(frag)
+    throw new Error('Failed to create program')
+  }
   gl.attachShader(program, vert)
   gl.attachShader(program, frag)
+  // All shaders use the same fullscreen quad attribute name.
+  gl.bindAttribLocation(program, 0, 'position')
   gl.linkProgram(program)
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     const info = gl.getProgramInfoLog(program)
     gl.deleteProgram(program)
+    gl.deleteShader(vert)
+    gl.deleteShader(frag)
     throw new Error(`Program linking failed: ${info}`)
   }
   gl.detachShader(program, vert)
@@ -52,6 +60,10 @@ export function createFullscreenQuad(gl: WebGL2RenderingContext): WebGLVertexArr
   gl.bindVertexArray(vao)
 
   const buffer = gl.createBuffer()
+  if (!buffer) {
+    gl.deleteVertexArray(vao)
+    throw new Error('Failed to create vertex buffer')
+  }
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
   // prettier-ignore
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -64,6 +76,7 @@ export function createFullscreenQuad(gl: WebGL2RenderingContext): WebGLVertexArr
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
 
   gl.bindVertexArray(null)
+  gl.bindBuffer(gl.ARRAY_BUFFER, null)
   return vao
 }
 
@@ -88,6 +101,13 @@ export function createFBOWithTexture(
   if (!fbo) throw new Error('Failed to create framebuffer')
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER)
+  if (status !== gl.FRAMEBUFFER_COMPLETE) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.deleteFramebuffer(fbo)
+    gl.deleteTexture(texture)
+    throw new Error(`Framebuffer is incomplete: 0x${status.toString(16)}`)
+  }
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
   return { fbo, texture }

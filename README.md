@@ -96,7 +96,9 @@ Default segmentation provider using MediaPipe's selfie segmentation models.
 **Options:**
 - `model` — `'selfie-multiclass-256'` or `'selfie-segmenter'` (default: `'selfie-multiclass-256'`)
 - `mediapipeVersion` — CDN version (default: `'0.10.14'`)
+- `visionBundleUrl` — custom URL for `vision_bundle.mjs` if you self-host MediaPipe
 - `wasmBasePath` — Custom WASM path (defaults to jsDelivr CDN)
+- `modelUrl` — custom URL for the segmentation model file
 
 ### `createLiveKitBlurProcessor(options?)`
 

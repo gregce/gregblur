@@ -17,6 +17,17 @@ export interface BlurSupportResult {
   reason?: string
 }
 
+function hasCanvasFallbackSupport(): boolean {
+  return (
+    typeof document !== 'undefined' &&
+    typeof HTMLCanvasElement !== 'undefined' &&
+    typeof HTMLVideoElement !== 'undefined' &&
+    typeof MediaStream !== 'undefined' &&
+    typeof requestAnimationFrame === 'function' &&
+    typeof HTMLCanvasElement.prototype.captureStream === 'function'
+  )
+}
+
 /**
  * Check whether the current browser supports the gregblur pipeline.
  *
@@ -29,7 +40,17 @@ export interface BlurSupportResult {
 export function isBlurSupported(): BlurSupportResult {
   try {
     // WebGL2
-    const testCanvas = document.createElement('canvas')
+    const testCanvas =
+      typeof document !== 'undefined'
+        ? document.createElement('canvas')
+        : typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(1, 1)
+          : null
+
+    if (!testCanvas) {
+      return { supported: false, reason: 'Canvas APIs not available' }
+    }
+
     const testGl = testCanvas.getContext('webgl2')
     if (!testGl) {
       return { supported: false, reason: 'WebGL2 not available' }
@@ -49,10 +70,7 @@ export function isBlurSupported(): BlurSupportResult {
       typeof g.MediaStreamTrackProcessor === 'function' &&
       typeof g.MediaStreamTrackGenerator === 'function'
 
-    const hasCanvasFallback =
-      typeof HTMLCanvasElement !== 'undefined' &&
-      typeof VideoFrame !== 'undefined' &&
-      'captureStream' in HTMLCanvasElement.prototype
+    const hasCanvasFallback = hasCanvasFallbackSupport()
 
     if (!hasInsertableStreams && !hasCanvasFallback) {
       return {
