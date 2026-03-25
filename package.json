@@ -1,0 +1,66 @@
+{
+  "name": "gregblur",
+  "version": "0.1.0",
+  "description": "High-quality WebGL2 background blur for video streams. Confidence masks, joint bilateral filtering, mask-weighted blur, and temporal smoothing — the full Google Meet technique stack in a standalone library.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./livekit": {
+      "types": "./dist/adapters/livekit.d.ts",
+      "import": "./dist/adapters/livekit.js"
+    },
+    "./raw": {
+      "types": "./dist/adapters/raw.d.ts",
+      "import": "./dist/adapters/raw.js"
+    },
+    "./detect": {
+      "types": "./dist/detect.d.ts",
+      "import": "./dist/detect.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicholasgasior/gregblur"
+  },
+  "keywords": [
+    "background-blur",
+    "video",
+    "webgl2",
+    "segmentation",
+    "mediapipe",
+    "webrtc",
+    "livekit",
+    "virtual-background"
+  ],
+  "peerDependencies": {
+    "livekit-client": "^2.1.0"
+  },
+  "peerDependenciesMeta": {
+    "livekit-client": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "livekit-client": "^2.16.0",
+    "tsdown": "^0.11.0",
+    "typescript": "^5.7.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  }
+}
