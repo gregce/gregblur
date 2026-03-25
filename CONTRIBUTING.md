@@ -5,7 +5,7 @@ Thanks for your interest in contributing! This document covers the basics.
 ## Setup
 
 ```zsh
-git clone https://github.com/nicholasgasior/gregblur.git
+git clone https://github.com/gregce/gregblur.git
 cd gregblur
 npm install
 npm run build
@@ -42,14 +42,14 @@ See [docs/pipeline.md](docs/pipeline.md) for a detailed walkthrough of the 8-sta
 
 ### Key directories
 
-| Path | Purpose |
-|---|---|
-| `src/core/` | WebGL2 pipeline, shaders, and utilities |
-| `src/segmentation/` | Pluggable segmentation providers |
-| `src/adapters/` | Framework-specific adapters (LiveKit, raw) |
-| `src/detect.ts` | Browser capability detection |
-| `docs/` | Architecture docs and diagrams |
-| `demo/` | Interactive demo playground |
+| Path                | Purpose                                    |
+| ------------------- | ------------------------------------------ |
+| `src/core/`         | WebGL2 pipeline, shaders, and utilities    |
+| `src/segmentation/` | Pluggable segmentation providers           |
+| `src/adapters/`     | Framework-specific adapters (LiveKit, raw) |
+| `src/detect.ts`     | Browser capability detection               |
+| `docs/`             | Architecture docs and diagrams             |
+| `demo/`             | Interactive demo playground                |
 
 ## Segmentation Providers
 
