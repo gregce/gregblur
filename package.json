@@ -70,11 +70,13 @@
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
+    "jsdom": "^29.0.1",
     "lint-staged": "^16.4.0",
     "livekit-client": "^2.16.0",
     "prettier": "^3.8.1",
     "tsdown": "^0.11.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.1"
   },
   "lint-staged": {
     "*.ts": [
@@ -94,6 +96,8 @@
     "format": "prettier --write 'src/**/*.ts' '*.json' '*.md' 'docs/**/*.md'",
     "format:check": "prettier --check 'src/**/*.ts' '*.json' '*.md' 'docs/**/*.md'",
     "docs": "node docs/render-diagrams.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build",
     "prepare": "husky"
   }
