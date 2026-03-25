@@ -38,7 +38,8 @@ describe('isBlurSupported', () => {
     expect(result.supported).toBe(true)
 
     // Clean up
-    delete (HTMLCanvasElement.prototype as Record<string, unknown>).captureStream
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (HTMLCanvasElement.prototype as any).captureStream
   })
 
   it('returns supported:false with reason when WebGL2 is missing', () => {
@@ -63,7 +64,8 @@ describe('isBlurSupported', () => {
     HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({}) as never
 
     // Ensure no captureStream on the prototype
-    delete (HTMLCanvasElement.prototype as Record<string, unknown>).captureStream
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (HTMLCanvasElement.prototype as any).captureStream
 
     const result = isBlurSupported()
     expect(result.supported).toBe(false)
