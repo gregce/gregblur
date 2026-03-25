@@ -590,7 +590,8 @@
   <!-- ── Application Logic ─────────────────────────────────── -->
   <script type="module">
     // Import from the built dist/ directory.
-    // On GitHub Pages, the CI build copies dist/ alongside demo/.
+    // Local dev: serve.mjs serves repo root, so ../dist/ resolves to /dist/
+    // GitHub Pages: pages.yml rewrites imports to ./dist/ during deploy
     import { createGregblurPipeline, createMediaPipeProvider } from '../dist/index.js'
     import { isBlurSupported } from '../dist/detect.js'
 

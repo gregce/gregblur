@@ -95,6 +95,8 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write 'src/**/*.ts' '*.json' '*.md' 'docs/**/*.md'",
     "format:check": "prettier --check 'src/**/*.ts' '*.json' '*.md' 'docs/**/*.md'",
+    "demo": "npm run build && node demo/serve.mjs",
+    "demo:serve": "node demo/serve.mjs",
     "docs": "node docs/render-diagrams.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
