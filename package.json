@@ -64,6 +64,7 @@
     }
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "beautiful-mermaid": "^1.1.3",

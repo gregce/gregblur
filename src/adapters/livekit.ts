@@ -5,7 +5,6 @@
  * Import from 'gregblur/livekit' — livekit-client is an optional peer dependency.
  */
 
-import type { Track, TrackProcessor, ProcessorOptions } from 'livekit-client'
 import type { GregblurOptions } from '../core/types.js'
 import type { SegmentationProvider } from '../segmentation/types.js'
 import type { MediaPipeModel } from '../segmentation/mediapipe.js'
@@ -19,11 +18,23 @@ import {
   startRAFPipeline,
 } from './_pipelines.js'
 
+/** Minimal structural shape required by LiveKit's TrackProcessor API. */
+export interface LiveKitProcessorOptions {
+  track: MediaStreamTrack
+  kind?: string
+  element?: HTMLMediaElement
+  audioContext?: AudioContext
+}
+
 /** LiveKit-specific processor interface with blur toggle. */
-export interface LiveKitBlurProcessor extends TrackProcessor<
-  Track.Kind,
-  ProcessorOptions<Track.Kind>
-> {
+export interface LiveKitBlurProcessor {
+  name: string
+  init(opts: LiveKitProcessorOptions): Promise<void>
+  restart(opts: LiveKitProcessorOptions): Promise<void>
+  destroy(): Promise<void>
+  processedTrack?: MediaStreamTrack
+  onPublish?: (_room: unknown) => Promise<void>
+  onUnpublish?: () => Promise<void>
   setEnabled(enabled: boolean): void
   isEnabled(): boolean
 }
@@ -77,7 +88,7 @@ export function createLiveKitBlurProcessor(
   const processor: LiveKitBlurProcessor = {
     name: 'gregblur',
 
-    async init(opts: ProcessorOptions<Track.Kind>): Promise<void> {
+    async init(opts: LiveKitProcessorOptions): Promise<void> {
       cleanupActiveRun()
 
       const controller = new AbortController()
@@ -109,7 +120,7 @@ export function createLiveKitBlurProcessor(
       }
     },
 
-    async restart(opts: ProcessorOptions<Track.Kind>): Promise<void> {
+    async restart(opts: LiveKitProcessorOptions): Promise<void> {
       await processor.init(opts)
     },
 

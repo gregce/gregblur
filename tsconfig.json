@@ -12,6 +12,7 @@
     "rootDir": "./src",
     "isolatedModules": true,
     "esModuleInterop": true,
+    "types": ["node"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
