@@ -7,11 +7,9 @@
 
 High-quality WebGL2 background blur for video streams.
 
-<p align="center">
-  <a href="https://gregce.github.io/gregblur/">
-    <img src="https://img.shields.io/badge/%E2%96%B6%20Try%20gregblur%20Live-gregce.github.io%2Fgregblur-7aa2f7?style=for-the-badge&logoColor=white" alt="Try gregblur Live" />
-  </a>
-</p>
+<h3 align="center">
+  <a href="https://gregce.github.io/gregblur/">Try gregblur Live &rarr;</a>
+</h3>
 
 <p align="center">
   <a href="https://gregce.github.io/gregblur/">
