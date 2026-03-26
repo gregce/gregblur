@@ -8,13 +8,19 @@
 High-quality WebGL2 background blur for video streams.
 
 <p align="center">
-  <a href="https://gregce.github.io/gregblur/"><strong>Try gregblur Live &rarr;</strong></a>
+  <a href="https://gregce.github.io/gregblur/">
+    <img src="https://img.shields.io/badge/%E2%96%B6%20Try%20gregblur%20Live-gregce.github.io%2Fgregblur-7aa2f7?style=for-the-badge&logoColor=white" alt="Try gregblur Live" />
+  </a>
 </p>
 
 <p align="center">
   <a href="https://gregce.github.io/gregblur/">
     <img src="docs/demo-screenshot.png" alt="gregblur demo — side-by-side original and blurred camera feed" width="720" />
   </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/gregce/gregblur/blob/main/docs/pipeline.md">Read the full pipeline architecture docs &rarr;</a>
 </p>
 
 Implements the full Google Meet technique stack using confidence masks, joint bilateral filtering, mask-weighted Gaussian blur, temporal EMA smoothing, masked downsampling, and foreground-biased compositing all as a standalone, framework-agnostic library.
