@@ -1,6 +1,6 @@
 {
   "name": "gregblur",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "High-quality WebGL2 background blur for video streams. Confidence masks, joint bilateral filtering, mask-weighted blur, and temporal smoothing — the full Google Meet technique stack in a standalone library.",
   "type": "module",
   "main": "./dist/index.js",
