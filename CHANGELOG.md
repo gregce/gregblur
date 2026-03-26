@@ -22,4 +22,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raw MediaStreamTrack adapter (`gregblur/raw`)
 - Browser capability detection (`gregblur/detect`)
 - Pipeline architecture documentation with Mermaid diagrams
-- MIT license
+- Apache-2.0 license

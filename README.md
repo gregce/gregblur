@@ -7,7 +7,7 @@
 
 High-quality WebGL2 background blur for video streams.
 
-Implements the full Google Meet technique stack — confidence masks, joint bilateral filtering, mask-weighted Gaussian blur, temporal EMA smoothing, masked downsampling, and foreground-biased compositing — as a standalone, framework-agnostic library.
+Implements the full Google Meet technique stack using confidence masks, joint bilateral filtering, mask-weighted Gaussian blur, temporal EMA smoothing, masked downsampling, and foreground-biased compositing all as a standalone, framework-agnostic library.
 
 ## Why gregblur?
 
@@ -163,4 +163,4 @@ const myProvider: SegmentationProvider = {
 
 ## License
 
-MIT
+Apache-2.0
