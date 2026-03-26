@@ -1,7 +1,7 @@
 # gregblur
 
 [![npm version](https://img.shields.io/npm/v/gregblur)](https://www.npmjs.com/package/gregblur)
-[![license](https://img.shields.io/npm/l/gregblur)](https://github.com/nicholasgasior/gregblur/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/gregblur)](https://github.com/gregce/gregblur/blob/main/LICENSE)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/gregblur)](https://bundlephobia.com/package/gregblur)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 

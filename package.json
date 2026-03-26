@@ -35,12 +35,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nicholasgasior/gregblur"
+    "url": "https://github.com/gregce/gregblur"
   },
   "bugs": {
-    "url": "https://github.com/nicholasgasior/gregblur/issues"
+    "url": "https://github.com/gregce/gregblur/issues"
   },
-  "homepage": "https://github.com/nicholasgasior/gregblur#readme",
+  "homepage": "https://github.com/gregce/gregblur#readme",
   "keywords": [
     "background-blur",
     "video",
