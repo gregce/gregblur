@@ -74,9 +74,18 @@ function getWasmBasePath(version: string): string {
   return `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${version}/wasm`
 }
 
+// Keep this as a separate helper so bundlers can preserve the ignore pragma.
+async function importFromUrl(url: string): Promise<unknown> {
+  return import(
+    /* webpackIgnore: true */
+    /* @vite-ignore */
+    url
+  )
+}
+
 async function loadVisionModule(visionBundleUrl: string): Promise<MediaPipeVisionModule> {
   try {
-    return (await import(/* @vite-ignore */ visionBundleUrl)) as MediaPipeVisionModule
+    return (await importFromUrl(visionBundleUrl)) as MediaPipeVisionModule
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error)
     throw new Error(
